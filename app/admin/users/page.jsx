@@ -14,8 +14,13 @@ export default function AdminUsersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
+        const getToken = () => {
+            const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+            return tokenCookie ? tokenCookie.split('=')[1] : null;
+        };
+
         const checkAdminAccess = async () => {
-            const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+            const token = getToken();
             const isAdmin = document.cookie.split(';').some(cookie => cookie.trim().startsWith('isAdmin='));
 
             if (!token || !isAdmin) {
@@ -25,9 +30,8 @@ export default function AdminUsersPage() {
 
             try {
                 const response = await fetch('http://localhost:5000/api/auth/me', {
-                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token.split('=')[1]}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -53,11 +57,10 @@ export default function AdminUsersPage() {
             if (!(await checkAdminAccess())) return;
 
             try {
-                const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+                const token = getToken();
                 const response = await fetch('http://localhost:5000/api/users', {
-                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${token.split('=')[1]}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 

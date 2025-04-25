@@ -7,17 +7,27 @@ export default function ChangePasswordModal({ isOpen, onClose, userId, onSuccess
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const getToken = () => {
+        const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+        return tokenCookie ? tokenCookie.split('=')[1] : null;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setLoading(true);
 
         try {
+            const token = getToken();
+            if (!token) {
+                throw new Error('لطفاً ابتدا وارد شوید');
+            }
+
             const response = await fetch(`http://localhost:5000/api/users/${userId}/change-password`, {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ newPassword })
             });
