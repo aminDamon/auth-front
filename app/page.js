@@ -61,15 +61,17 @@ export default function FilesPage() {
         const data = await response.json();
         console.log('Fetched files:', data);
 
-        // تبدیل داده‌های FTP به فرمت مورد نیاز
-        const formattedFiles = data.files.map(file => ({
-          id: file.name,
-          name: file.name,
-          type: file.name.split('.').pop(),
-          size: formatFileSize(file.size),
-          date: formatFileDate(file.date),
-          url: `http://localhost:5000/api/ftp/download/${encodeURIComponent(file.name)}`
-        }));
+        // تبدیل داده‌های FTP به فرمت مورد نیاز و فیلتر کردن فقط فایل‌های ZIP
+        const formattedFiles = data.files
+          .filter(file => file.name.toLowerCase().endsWith('.zip'))
+          .map(file => ({
+            id: file.name,
+            name: file.name,
+            type: 'zip',
+            size: formatFileSize(file.size),
+            date: formatFileDate(file.date),
+            url: `http://localhost:5000/api/ftp/download/${encodeURIComponent(file.name)}`
+          }));
 
         setFiles(formattedFiles);
         setFilteredFiles(formattedFiles);
@@ -88,8 +90,7 @@ export default function FilesPage() {
   useEffect(() => {
     setFilteredFiles(
       files.filter(file =>
-        file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        file.type.toLowerCase().includes(searchTerm.toLowerCase())
+        file.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
   }, [searchTerm, files]);
@@ -139,7 +140,6 @@ export default function FilesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
-      <Header />
 
       <main className="container mx-auto px-4 py-8">
         <motion.div
@@ -158,8 +158,6 @@ export default function FilesPage() {
           <FilesList files={filteredFiles} isLoading={isLoading} />
         </motion.div>
       </main>
-
-      <Footer />
     </div>
   );
 }

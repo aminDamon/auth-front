@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "file-loader": "^6.2.0",
     "tailwindcss": "^4"
   }
 }
