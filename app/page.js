@@ -1,103 +1,120 @@
-import Image from "next/image";
+"use client"
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { getCookie } from 'cookies-next';
+import Header from './layout/Header';
+import PageTitle from './components/PageTitle';
+import SearchBox from './components/SearchBox';
+import FilesList from './components/FilesList';
+import Footer from './components/Footer';
+import { containerVariants } from './login/styles/animations';
 
-export default function Home() {
+// ... (کدهای قبلی containerVariants)
+
+export default function FilesPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [files, setFiles] = useState([]);
+  const [filteredFiles, setFilteredFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch files from API
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        // دریافت توکن از کوکی‌ها
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUiLCJpYXQiOjE3NDU1MzQ5MjksImV4cCI6MTc0NTUzODUyOX0.KSmDFX5aplioStMPSzbCbEWuFUAFLuMr3IBxiRAtvZU"
+        console.log('Token from cookies:', token); // برای دیباگ
+
+        if (!token) {
+          throw new Error('No token found in cookies');
+        }
+
+        const response = await fetch('http://localhost:5000/api/ftp/list', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch files: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Fetched files:', data);
+
+        // تبدیل داده‌های FTP به فرمت مورد نیاز
+        const formattedFiles = data.files.map(file => ({
+          id: file.name,
+          name: file.name,
+          type: file.name.split('.').pop(),
+          size: formatFileSize(file.size),
+          date: formatFileDate(file.date),
+          url: `http://localhost:5000/api/ftp/download/${encodeURIComponent(file.name)}`
+        }));
+
+        setFiles(formattedFiles);
+        setFilteredFiles(formattedFiles);
+      } catch (error) {
+        console.error('Error fetching files:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFiles();
+  }, []);
+
+  // Handle search
+  useEffect(() => {
+    setFilteredFiles(
+      files.filter(file =>
+        file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        file.type.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, files]);
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Helper function to format file date
+  const formatFileDate = (dateString) => {
+    if (!dateString) return 'نامشخص';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fa-IR'); // فرمت تاریخ شمسی
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
+      <Header />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+      <main className="container mx-auto px-4 py-8">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="max-w-6xl mx-auto"
+        >
+          <PageTitle />
+          <SearchBox onSearch={handleSearch} searchTerm={searchTerm} />
+          <FilesList files={filteredFiles} isLoading={isLoading} />
+        </motion.div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer />
     </div>
   );
 }
