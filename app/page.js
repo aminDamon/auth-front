@@ -7,6 +7,9 @@ import SearchBox from './components/SearchBox';
 import FilesList from './components/FilesList';
 import Footer from './components/Footer';
 import { containerVariants } from './login/styles/animations';
+import FileCard from './components/FileCard';
+import UserManagement from './components/UserManagement';
+import { useRouter } from 'next/navigation';
 
 // تابع کمکی برای خواندن کوکی
 const getCookie = (name) => {
@@ -26,6 +29,8 @@ export default function FilesPage() {
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState(null);
+  const router = useRouter();
 
   // Fetch files from API
   useEffect(() => {
@@ -76,6 +81,7 @@ export default function FilesPage() {
     };
 
     fetchFiles();
+    checkUserRole();
   }, []);
 
   // Handle search
@@ -108,6 +114,29 @@ export default function FilesPage() {
     return date.toLocaleDateString('fa-IR'); // فرمت تاریخ شمسی
   };
 
+  const checkUserRole = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/me', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserRole(data.role);
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
       <Header />
@@ -121,6 +150,11 @@ export default function FilesPage() {
         >
           <PageTitle />
           <SearchBox onSearch={handleSearch} searchTerm={searchTerm} />
+          {userRole === 'admin' && (
+            <div className="mb-8">
+              <UserManagement />
+            </div>
+          )}
           <FilesList files={filteredFiles} isLoading={isLoading} />
         </motion.div>
       </main>

@@ -77,19 +77,29 @@ const FileCard = ({ file, index }) => {
         setError(null);
 
         try {
+            console.time('Token extraction');
+            const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
+            console.timeEnd('Token extraction');
+
+            console.time('Server request');
             const response = await fetch(file.url, {
                 credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1]}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
+            console.timeEnd('Server request');
 
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'خطا در دانلود فایل');
             }
 
+            console.time('Blob conversion');
             const blob = await response.blob();
+            console.timeEnd('Blob conversion');
+
+            console.time('Download initiation');
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -98,6 +108,7 @@ const FileCard = ({ file, index }) => {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            console.timeEnd('Download initiation');
         } catch (error) {
             console.error('Download error:', error);
             // تبدیل خطاها به فارسی
