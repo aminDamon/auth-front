@@ -2,8 +2,7 @@
 import { motion } from 'framer-motion';
 import { buttonHoverVariants, itemVariants } from '../styles/animations';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { setCookie } from 'cookies-next';
+import { useSearchParams } from 'next/navigation';
 
 const SubmitButton = ({
     loginMethod,
@@ -13,7 +12,8 @@ const SubmitButton = ({
     onSuccess
 }) => {
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect') || '/';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +28,7 @@ const SubmitButton = ({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
-                credentials: 'include' // برای کوکی‌های HttpOnly
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -38,16 +38,8 @@ const SubmitButton = ({
             }
 
             if (loginMethod === 'password') {
-                // ذخیره توکن در کوکی
-                setCookie('token', data.token, {
-                    maxAge: 60 * 60 * 24 * 7, // 1 هفته
-                    path: '/',
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict'
-                });
-
                 onSuccess('ورود با موفقیت انجام شد');
-                router.push('/'); // ریدایرکت به صفحه اصلی
+                window.location.href = redirect;
             } else {
                 onSuccess(`کد تأیید به ایمیل شما ارسال شد`);
             }

@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getCookie } from 'cookies-next';
 import Header from './layout/Header';
 import PageTitle from './components/PageTitle';
 import SearchBox from './components/SearchBox';
@@ -9,7 +8,18 @@ import FilesList from './components/FilesList';
 import Footer from './components/Footer';
 import { containerVariants } from './login/styles/animations';
 
-// ... (کدهای قبلی containerVariants)
+// تابع کمکی برای خواندن کوکی
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return null;
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith(name + '=')) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return null;
+};
 
 export default function FilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +32,8 @@ export default function FilesPage() {
     const fetchFiles = async () => {
       try {
         // دریافت توکن از کوکی‌ها
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUiLCJpYXQiOjE3NDU1MzQ5MjksImV4cCI6MTc0NTUzODUyOX0.KSmDFX5aplioStMPSzbCbEWuFUAFLuMr3IBxiRAtvZU"
+        const token = getCookie('token');
+        console.log('All cookies:', document.cookie); // برای دیباگ
         console.log('Token from cookies:', token); // برای دیباگ
 
         if (!token) {
@@ -31,11 +42,11 @@ export default function FilesPage() {
 
         const response = await fetch('http://localhost:5000/api/ftp/list', {
           method: 'GET',
-          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include' // ارسال کوکی‌ها با درخواست
         });
 
         if (!response.ok) {

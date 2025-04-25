@@ -1,6 +1,7 @@
 "use client"
 import { motion } from 'framer-motion';
 import { FiDownload, FiFile, FiFileText, FiImage, FiVideo } from 'react-icons/fi';
+import { useState } from 'react';
 
 // File type icons with more vibrant colors
 const fileTypeIcons = {
@@ -63,9 +64,56 @@ const buttonHover = {
 };
 
 const FileCard = ({ file, index }) => {
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [error, setError] = useState(null);
+
     // Get file icon and color based on file type
     const getFileIcon = (type) => fileTypeIcons[type] || fileTypeIcons.default;
     const getFileColor = (type) => fileTypeColors[type] || fileTypeColors.default;
+
+    const handleDownload = async (e) => {
+        e.preventDefault();
+        setIsDownloading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(file.url, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1]}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'خطا در دانلود فایل');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download error:', error);
+            // تبدیل خطاها به فارسی
+            let errorMessage = 'خطا در دانلود فایل';
+            if (error.message.includes('token')) {
+                errorMessage = 'لطفاً ابتدا وارد شوید';
+            } else if (error.message.includes('network')) {
+                errorMessage = 'خطا در اتصال به سرور';
+            } else if (error.message.includes('zip')) {
+                errorMessage = 'فقط فایل‌های zip قابل دانلود هستند';
+            }
+            setError(errorMessage);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     return (
         <motion.div
@@ -94,18 +142,44 @@ const FileCard = ({ file, index }) => {
                 <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-400">{file.date}</span>
 
-                    <motion.a
-                        href={file.url}
-                        download
-                        className="flex items-center px-4 py-2 bg-[#ff6600] text-white rounded-lg"
-                        initial={false}
-                        whileHover="hover"
-                        whileTap="tap"
-                        variants={buttonHover}
-                    >
-                        <span>دانلود</span>
-                        <FiDownload className="mr-2" />
-                    </motion.a>
+                    <div className="relative">
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="absolute bottom-full mb-2 right-0 bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg shadow-lg border border-red-100"
+                            >
+                                {error}
+                            </motion.div>
+                        )}
+
+                        <motion.button
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                            className={`flex items-center px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                                isDownloading 
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-[#ff6600] text-white hover:bg-[#e55c00]'
+                            }`}
+                            initial={false}
+                            whileHover={!isDownloading ? "hover" : {}}
+                            whileTap={!isDownloading ? "tap" : {}}
+                            variants={buttonHover}
+                        >
+                            {isDownloading ? (
+                                <>
+                                    <span>در حال دانلود...</span>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                </>
+                            ) : (
+                                <>
+                                    <span>دانلود</span>
+                                    <FiDownload className="mr-2" />
+                                </>
+                            )}
+                        </motion.button>
+                    </div>
                 </div>
             </div>
 
