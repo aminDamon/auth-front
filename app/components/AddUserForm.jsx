@@ -25,7 +25,7 @@ export default function AddUserForm({ onUserAdded }) {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/users', {
+            const response = await fetch('https://ftp-safenet.liara.run/api/users', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

@@ -8,7 +8,7 @@ const Footer = () => {
 
     return (
         <motion.footer
-            className="bg-gradient-to-b from-gray-900 to-gray-800 text-white pt-12 pb-6"
+            className="bg-gradient-to-b from-gray-900 to-gray-800 text-white pt-12 pb-6 mt-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -54,41 +54,6 @@ const Footer = () => {
                             </svg>
                             <span>info@safenet-co.net</span>
                         </div>
-                    </motion.div>
-
-                    {/* Quick Links */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.6 }}
-                    >
-                        <h3 className="text-xl font-bold mb-4 text-[#ff6600]">لینک های سریع</h3>
-                        <ul className="space-y-2">
-                            <li>
-                                <Link href="#" className="text-gray-300 hover:text-[#ff6600] transition-colors flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                    قوانین و مقررات
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="text-gray-300 hover:text-[#ff6600] transition-colors flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                    حریم خصوصی
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="#" className="text-gray-300 hover:text-[#ff6600] transition-colors flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                    تماس با ما
-                                </Link>
-                            </li>
-                        </ul>
                     </motion.div>
                 </div>
 

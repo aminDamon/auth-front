@@ -9,7 +9,7 @@ export default function UserList() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/users', {
+                const response = await fetch('https://ftp-safenet.liara.run/api/users', {
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json'

@@ -1,86 +1,259 @@
 "use client"
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
+import { FiHome, FiPhone, FiUser, FiLogOut, FiDownload, FiSettings, FiLock } from 'react-icons/fi';
 
-const Header = () => {
-    const [scrolled, setScrolled] = useState(false);
+const Header = ({ darkMode, setDarkMode }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const router = useRouter();
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 10);
-        };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+        const token = tokenCookie ? tokenCookie.split('=')[1] : null;
 
-    return (
-        <motion.header
-            className={`w-full z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-lg py-2" : "bg-white/90 backdrop-blur-sm py-3"
-                }`}
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center">
-                    {/* Logo and Back Link */}
-                    <motion.div
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.6 }}
-                    >
-                        <Link href="https://www.safenet-co.net/" target="_blank" rel="noopener noreferrer">
-                            <motion.div
-                                className="flex items-center group"
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                            >
-                                <div className="relative w-10 h-10 sm:w-12 sm:h-12">
-                                    <Image
-                                        src="/pic/logo-1030x594-1.png"
-                                        alt="شبکه امن"
-                                        fill
-                                        className="object-contain"
-                                        priority
-                                    />
-                                </div>
-                                <span className="mr-2 sm:mr-3 text-sm sm:text-base text-gray-700 font-medium group-hover:text-[#ff6600] transition-colors">
-                                    بازگشت به safenet
-                                </span>
-                            </motion.div>
-                        </Link>
-                    </motion.div>
+        if (!token) {
+          throw new Error('لطفاً ابتدا وارد شوید');
+        }
 
-                    {/* Contact Button */}
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                    >
-                        <motion.a
-                            href="tel:88934093"
-                            className="flex items-center gap-1 text-[#ff6600] border-2 border-[#ff6600] px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg font-medium transition-all duration-300 hover:bg-[#ff6600] hover:text-white"
-                            whileHover={{
-                                scale: 1.05,
-                                backgroundColor: "#ff6600",
-                                color: "#ffffff",
-                                boxShadow: "0 4px 12px -2px rgba(255, 102, 0, 0.4)"
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                            </svg>
-                            <span dir="ltr">۸۸۹۳۴۰۹۳-۵</span>
-                        </motion.a>
-                    </motion.div>
+        const response = await fetch('https://ftp-safenet.liara.run/api/auth/me', {
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          throw new Error('خطا در دریافت اطلاعات کاربر');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('https://ftp-safenet.liara.run/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+
+  const menuVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 20 } }
+  };
+
+  return (
+    <header
+      className={`w-full z-50 transition-all duration-500 fixed top-0 backdrop-blur-md ${scrolled
+        ? 'bg-white/15 shadow-lg py-2 border-b border-white/10'
+        : 'bg-transparent py-4'
+        }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo and Back Link */}
+          <div className="flex items-center">
+            <Link
+              href="https://www.safenet-co.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative overflow-hidden rounded-xl px-5 py-2.5"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-xl"></span>
+              <div className="relative flex items-center gap-3 z-10">
+                <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-lg shadow-md group-hover:shadow-amber-500/20 transition-all duration-300">
+                  <FiHome className="w-5 h-5 text-white" />
                 </div>
+                <span className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600 group-hover:from-amber-600 group-hover:to-orange-600 transition-all duration-300">
+                  بازگشت به safenet
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-5">
+            {/* Downloads Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-all duration-300 group"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 rounded-lg">
+                <FiDownload className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-700">دانلود فایل‌ها</span>
+            </motion.button>
+
+            {/* Contact Button */}
+            <motion.a
+              href="tel:88934093"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 px-5 py-2.5 rounded-xl shadow-md hover:shadow-amber-500/30 transition-all duration-300 group"
+            >
+              <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
+                <FiPhone className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-sm font-medium text-white" dir="ltr">۸۸۹۳۴۰۹۳-۵</span>
+            </motion.a>
+
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="relative group rounded-xl p-2.5 hover:bg-gray-100 transition-all duration-300"
+              >
+                <div className="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl overflow-hidden shadow-md group-hover:shadow-amber-500/20 transition-all duration-300">
+                  <FiUser className="w-5 h-5 text-white" />
+                  {userData && (
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                  )}
+                </div>
+              </motion.button>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    variants={menuVariants}
+                    className="absolute left-0 mt-2 w-80 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100/50 overflow-hidden z-50"
+                  >
+                    <div className="p-6 border-b border-gray-100/50 bg-gradient-to-r from-amber-50 to-orange-50">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                          <FiUser className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-base font-bold text-gray-900">{userData?.username || 'کاربر'}</p>
+                          <p className="text-xs text-gray-500 truncate">{userData?.email || 'guest@safenet.com'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="text-xs px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-orange-700 rounded-full font-medium">
+                          {userData?.role || 'کاربر عادی'}
+                        </span>
+                        {userData?.createdAt && (
+                          <span className="text-xs text-gray-500">
+                            {new Date(userData.createdAt).toLocaleDateString('fa-IR')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-2">
+                      <button
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200"
+                      >
+                        <FiSettings className="w-4 h-4 text-gray-500" />
+                        <span>تنظیمات حساب کاربری</span>
+                      </button>
+
+                      <Link
+                        href="/reset-password"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-xl transition-all duration-200"
+                      >
+                        <FiLock className="w-4 h-4" />
+                        <span>تغییر رمز عبور</span>
+                      </Link>
+
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 mt-1 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                      >
+                        <FiLogOut className="w-4 h-4" />
+                        <span>خروج از حساب کاربری</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-        </motion.header>
-    );
+          </div>
+        </div>
+      </div>
+
+      {/* Downloads Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={menuVariants}
+            className="absolute top-20 right-1/2 transform translate-x-1/2 w-11/12 max-w-3xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100/50 z-40 overflow-hidden"
+          >
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">دانلود نرم‌افزارهای شرکت safenet</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: 'نرم‌افزار مدیریت شبکه', version: '3.2.1', size: '45MB' },
+                  { name: 'نرم‌افزار امنیت اطلاعات', version: '2.0.5', size: '32MB' },
+                  { name: 'نرم‌افزار پشتیبان‌گیری', version: '1.7.3', size: '28MB' },
+                  { name: 'نرم‌افزار مانیتورینگ', version: '4.1.0', size: '38MB' }
+                ].map((app, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-gradient-to-r from-gray-50 to-white p-4 rounded-xl border border-gray-100 hover:shadow-md transition-all duration-300"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-gray-800">{app.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">v{app.version}</span>
+                          <span className="text-xs text-gray-500">{app.size}</span>
+                        </div>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="p-2 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg shadow-md hover:shadow-amber-500/20"
+                      >
+                        <FiDownload className="w-4 h-4 text-white" />
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
 };
 
 export default Header;

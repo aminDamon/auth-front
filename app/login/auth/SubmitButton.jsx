@@ -2,7 +2,8 @@
 import { motion } from 'framer-motion';
 import { buttonHoverVariants, itemVariants } from '../styles/animations';
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { setCookie, deleteCookie, getCookie } from '../../utils/cookies';
 
 const SubmitButton = ({
     loginMethod,
@@ -13,6 +14,7 @@ const SubmitButton = ({
 }) => {
     const [isLoading, setIsLoading] = useState(false);
     const searchParams = useSearchParams();
+    const router = useRouter();
     const redirect = searchParams.get('redirect') || '/';
 
     const handleSubmit = async (e) => {
@@ -21,14 +23,17 @@ const SubmitButton = ({
 
         try {
             const endpoint = loginMethod === 'password'
-                ? '/api/auth/login-password'
-                : '/api/auth/request-verification';
+                ? 'api/auth/login-password'
+                : 'api/auth/request-verification';
 
-            const response = await fetch(`http://localhost:5000${endpoint}`, {
+            const response = await fetch(`https://ftp-safenet.liara.run/${endpoint}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username, password })
             });
 
             const data = await response.json();
@@ -38,12 +43,49 @@ const SubmitButton = ({
             }
 
             if (loginMethod === 'password') {
+                // پاک کردن کوکی‌های قبلی
+                deleteCookie('token');
+                deleteCookie('isAdmin');
+
+                // بررسی اعتبار توکن
+                if (!data.token) {
+                    console.error('No token in response:', data);
+                    throw new Error('No token received from server');
+                }
+
+                // ذخیره کوکی‌های جدید
+                setCookie('token', data.token, 1); // 1 day expiration
+                setCookie('isAdmin', data.user?.role === 'admin', 1);
+
+                // تأیید ذخیره شدن کوکی‌ها
+                const storedToken = getCookie('token');
+                if (!storedToken) {
+                    console.error('Failed to store token. Current cookies:', document.cookie);
+                    throw new Error('Failed to store token');
+                }
+
+                // لاگ کردن کوکی‌ها برای دیباگ
+                console.log('Login successful:', {
+                    user: data.user,
+                    token: storedToken,
+                    isAdmin: getCookie('isAdmin'),
+                    domain: window.location.hostname,
+                    allCookies: document.cookie
+                });
+                
+                // تأخیر کوتاه برای اطمینان از ذخیره کوکی‌ها
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
                 onSuccess('ورود با موفقیت انجام شد');
-                window.location.href = redirect;
+                router.push(redirect);
             } else {
                 onSuccess(`کد تأیید به ایمیل شما ارسال شد`);
             }
+
+            // بعد از موفقیت‌آمیز بودن لاگین، به صفحه اصلی هدایت شود
+            window.location.href = '/';
         } catch (error) {
+            console.error('Login error:', error);
             onError(error.message);
         } finally {
             setIsLoading(false);

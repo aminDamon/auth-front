@@ -20,7 +20,7 @@ const UserManagement = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/users', {
+            const response = await fetch('https://ftp-safenet.liara.run/api/users', {
                 credentials: 'include'
             });
             
@@ -40,7 +40,7 @@ const UserManagement = () => {
     const handleAddUser = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:3001/api/users', {
+            const response = await fetch('https://ftp-safenet.liara.run/api/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -69,7 +69,7 @@ const UserManagement = () => {
 
     const handleChangePassword = async (userId, newPassword) => {
         try {
-            const response = await fetch('http://localhost:3001/api/users/change-password', {
+            const response = await fetch('https://ftp-safenet.liara.run/api/users/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

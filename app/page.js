@@ -1,7 +1,8 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Header from './layout/Header';
+import { AnimatePresence } from 'framer-motion';
+import Header from './components/Header';
 import PageTitle from './components/PageTitle';
 import SearchBox from './components/SearchBox';
 import FilesList from './components/FilesList';
@@ -24,34 +25,70 @@ const getCookie = (name) => {
   return null;
 };
 
+// انیمیشن‌های جدید
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const slideIn = {
+  hidden: { x: -20, opacity: 0 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut"
+    }
+  }
+};
+
+const scale = {
+  hidden: { scale: 0.95, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  }
+};
+
 export default function FilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
   const router = useRouter();
 
   // Fetch files from API
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        // دریافت توکن از کوکی‌ها
         const token = getCookie('token');
-        console.log('All cookies:', document.cookie); // برای دیباگ
-        console.log('Token from cookies:', token); // برای دیباگ
-
         if (!token) {
           throw new Error('No token found in cookies');
         }
 
-        const response = await fetch('http://localhost:5000/api/ftp/list', {
+        const response = await fetch('https://ftp-safenet.liara.run/api/ftp/list', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          credentials: 'include' // ارسال کوکی‌ها با درخواست
+          credentials: 'include'
         });
 
         if (!response.ok) {
@@ -59,9 +96,6 @@ export default function FilesPage() {
         }
 
         const data = await response.json();
-        console.log('Fetched files:', data);
-
-        // تبدیل داده‌های FTP به فرمت مورد نیاز و فیلتر کردن فقط فایل‌های ZIP
         const formattedFiles = data.files
           .filter(file => file.name.toLowerCase().endsWith('.zip'))
           .map(file => ({
@@ -70,7 +104,7 @@ export default function FilesPage() {
             type: 'zip',
             size: formatFileSize(file.size),
             date: formatFileDate(file.date),
-            url: `http://localhost:5000/api/ftp/download/${encodeURIComponent(file.name)}`
+            url: `https://ftp-safenet.liara.run/api/ftp/download/${encodeURIComponent(file.name)}`
           }));
 
         setFiles(formattedFiles);
@@ -84,22 +118,52 @@ export default function FilesPage() {
 
     fetchFiles();
     checkUserRole();
+    // بررسی حالت تاریک/روشن سیستم
+    if (typeof window !== 'undefined') {
+      setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
   }, []);
 
-  // Handle search
+  // Handle search and sorting
   useEffect(() => {
-    setFilteredFiles(
-      files.filter(file =>
-        file.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    let result = files.filter(file =>
+      file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, files]);
+
+    // مرتب‌سازی
+    result.sort((a, b) => {
+      if (sortBy === 'name') {
+        return sortOrder === 'asc'
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else if (sortBy === 'date') {
+        return sortOrder === 'asc'
+          ? new Date(a.date) - new Date(b.date)
+          : new Date(b.date) - new Date(a.date);
+      } else if (sortBy === 'size') {
+        return sortOrder === 'asc'
+          ? parseFloat(a.size) - parseFloat(b.size)
+          : parseFloat(b.size) - parseFloat(a.size);
+      }
+      return 0;
+    });
+
+    setFilteredFiles(result);
+  }, [searchTerm, files, sortBy, sortOrder]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
   };
 
-  // Helper function to format file size
+  const toggleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -108,19 +172,18 @@ export default function FilesPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Helper function to format file date
   const formatFileDate = (dateString) => {
     if (!dateString) return 'نامشخص';
     const date = new Date(dateString);
-    return date.toLocaleDateString('fa-IR'); // فرمت تاریخ شمسی
+    return date.toLocaleDateString('fa-IR');
   };
 
   const checkUserRole = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch('https://ftp-safenet.liara.run/api/auth/me', {
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUserRole(data.role);
@@ -132,30 +195,82 @@ export default function FilesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className={`flex justify-center items-center h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full"
+        />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
 
-      <main className="container mx-auto px-4 py-8">
+  return (
+    <div
+      className={`min-h-screen transition-all duration-500 ${darkMode
+        ? 'bg-gradient-to-br from-gray-900 to-orange-950 text-white'
+        : 'bg-gradient-to-br from-amber-50 to-orange-50 text-gray-800'
+        } font-vazir relative overflow-hidden`}
+    >
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {!darkMode ? (
+          <>
+            <div className="absolute top-0 left-0 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+          </>
+        ) : (
+          <>
+            <div className="absolute top-0 left-0 w-96 h-96 bg-amber-700/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+          </>
+        )}
+      </div>
+
+      {/* Header */}
+      <Header darkMode={darkMode} setDarkMode={setDarkMode} />
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-24 relative z-10">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={containerVariants}
           className="max-w-6xl mx-auto"
         >
-          <PageTitle />
-          <SearchBox onSearch={handleSearch} searchTerm={searchTerm} />
+          {/* Page Title */}
+          <motion.div variants={fadeIn} className='mt-[120px]'>
+            <PageTitle darkMode={darkMode} />
+          </motion.div>
+
+          {/* Search Box */}
+          <motion.div variants={fadeIn} className="mb-12">
+            <SearchBox
+              onSearch={handleSearch}
+              searchTerm={searchTerm}
+              darkMode={darkMode}
+            />
+          </motion.div>
+
+          {/* Admin Panel */}
           {userRole === 'admin' && (
-            <div className="mb-8">
-              <UserManagement />
-            </div>
+            <motion.div
+              variants={fadeIn}
+              className="mb-12"
+            >
+              <UserManagement darkMode={darkMode} />
+            </motion.div>
           )}
-          <FilesList files={filteredFiles} isLoading={isLoading} />
+
+          {/* Files List */}
+          <AnimatePresence mode="wait">
+            <FilesList
+              files={filteredFiles}
+              isLoading={isLoading}
+              darkMode={darkMode}
+            />
+          </AnimatePresence>
         </motion.div>
       </main>
     </div>

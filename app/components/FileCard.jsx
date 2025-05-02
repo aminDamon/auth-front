@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FiDownload, FiFile, FiFileText, FiImage, FiVideo } from 'react-icons/fi';
 import { useState } from 'react';
 
-// File type icons with more vibrant colors
+// File type icons
 const fileTypeIcons = {
     pdf: <FiFileText className="w-6 h-6" />,
     doc: <FiFile className="w-6 h-6" />,
@@ -25,7 +25,7 @@ const fileTypeColors = {
     default: 'bg-gray-50 text-gray-500'
 };
 
-// Enhanced file card animation variants
+// File card animation variants
 const fileCardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i) => ({
@@ -63,7 +63,8 @@ const buttonHover = {
     }
 };
 
-const FileCard = ({ file, index }) => {
+const FileCard = ({ file, darkMode }) => {
+    const [isHovered, setIsHovered] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -77,29 +78,20 @@ const FileCard = ({ file, index }) => {
         setError(null);
 
         try {
-            console.time('Token extraction');
             const token = document.cookie.split(';').find(c => c.trim().startsWith('token='))?.split('=')[1];
-            console.timeEnd('Token extraction');
-
-            console.time('Server request');
             const response = await fetch(file.url, {
                 credentials: 'include',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            console.timeEnd('Server request');
 
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'خطا در دانلود فایل');
             }
 
-            console.time('Blob conversion');
             const blob = await response.blob();
-            console.timeEnd('Blob conversion');
-
-            console.time('Download initiation');
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -108,19 +100,8 @@ const FileCard = ({ file, index }) => {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            console.timeEnd('Download initiation');
-        } catch (error) {
-            console.error('Download error:', error);
-            // تبدیل خطاها به فارسی
-            let errorMessage = 'خطا در دانلود فایل';
-            if (error.message.includes('token')) {
-                errorMessage = 'لطفاً ابتدا وارد شوید';
-            } else if (error.message.includes('network')) {
-                errorMessage = 'خطا در اتصال به سرور';
-            } else if (error.message.includes('zip')) {
-                errorMessage = 'فقط فایل‌های zip قابل دانلود هستند';
-            }
-            setError(errorMessage);
+        } catch (err) {
+            setError(err.message);
         } finally {
             setIsDownloading(false);
         }
@@ -128,82 +109,67 @@ const FileCard = ({ file, index }) => {
 
     return (
         <motion.div
-            key={file.id}
-            custom={index}
+            variants={fileCardVariants}
             initial="hidden"
             animate="visible"
             whileHover="hover"
-            variants={fileCardVariants}
-            className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-orange-100"
+            className={`relative rounded-lg overflow-hidden shadow-lg transition-all duration-300 ${
+                darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="p-6">
-                <div className="flex items-center mb-4">
-                    <motion.div
-                        whileHover={{ rotate: 5, scale: 1.1 }}
-                        className={`w-12 h-12 flex items-center justify-center rounded-full ${getFileColor(file.type)}`}
-                    >
+            <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                        <div className={`p-2 rounded-lg ${getFileColor(file.type)}`}>
                         {getFileIcon(file.type)}
-                    </motion.div>
-                    <div className="flex-1 min-w-0 ml-4">
-                        <h3 className="text-lg font-semibold text-gray-800 truncate">{file.name}</h3>
-                        <p className="text-sm text-gray-500">{file.type.toUpperCase()} • {file.size}</p>
+                        </div>
+                        <div>
+                            <h3 className={`text-lg font-vazir font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                                {file.name}
+                            </h3>
+                            <p className={`text-sm font-vazir ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {file.size}
+                            </p>
+                        </div>
                     </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleDownload}
+                        disabled={isDownloading}
+                        className={`p-2 rounded-lg transition-colors duration-200 ${
+                            darkMode 
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        }`}
+                    >
+                        {isDownloading ? (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                        )}
+                    </motion.button>
                 </div>
 
-                <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400">{file.date}</span>
+                <div className={`text-sm font-vazir ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p>تاریخ آپلود: {new Date(file.uploadDate).toLocaleDateString('fa-IR')}</p>
+                    <p>نوع فایل: {file.type}</p>
+                </div>
 
-                    <div className="relative">
                         {error && (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="absolute bottom-full mb-2 right-0 bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg shadow-lg border border-red-100"
+                        className="mt-2 p-2 bg-red-100 text-red-700 rounded-lg text-sm font-vazir"
                             >
                                 {error}
                             </motion.div>
                         )}
-
-                        <motion.button
-                            onClick={handleDownload}
-                            disabled={isDownloading}
-                            className={`flex items-center px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                                isDownloading 
-                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                                    : 'bg-[#ff6600] text-white hover:bg-[#e55c00]'
-                            }`}
-                            initial={false}
-                            whileHover={!isDownloading ? "hover" : {}}
-                            whileTap={!isDownloading ? "tap" : {}}
-                            variants={buttonHover}
-                        >
-                            {isDownloading ? (
-                                <>
-                                    <span>در حال دانلود...</span>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                </>
-                            ) : (
-                                <>
-                                    <span>دانلود</span>
-                                    <FiDownload className="mr-2" />
-                                </>
-                            )}
-                        </motion.button>
-                    </div>
-                </div>
             </div>
-
-            {/* Subtle glow effect on hover */}
-            <motion.div
-                className="absolute inset-0 rounded-xl pointer-events-none"
-                initial={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                    boxShadow: "inset 0 0 0 1px rgba(255, 102, 0, 0.1)"
-                }}
-            />
         </motion.div>
     );
 };
