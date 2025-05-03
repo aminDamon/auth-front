@@ -27,25 +27,36 @@ export default function ChangePassword() {
     }
 
     try {
-      const response = await fetch('/api/auth/change-password', {
+      // دریافت توکن از کوکی
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+
+      if (!token) {
+        throw new Error('لطفاً ابتدا وارد شوید');
+      }
+
+      const response = await fetch('https://safenet.liara.run/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           currentPassword,
-          newPassword 
-        }),
+          newPassword
+        })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'خطا در تغییر رمز عبور');
+        throw new Error(data.error || 'خطا در تغییر رمز عبور');
       }
 
       toast.success('رمز عبور با موفقیت تغییر یافت');
-      router.push('/login');
+      router.push('/dashboard');
     } catch (error) {
       toast.error(error.message);
     } finally {

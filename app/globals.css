@@ -69,3 +69,7 @@ main {
 * {
   font-family: 'Vazirmatn', sans-serif; 
 }
+
+input {
+  outline: none;
+}

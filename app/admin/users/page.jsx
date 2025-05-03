@@ -6,7 +6,7 @@ import AddUserForm from './AddUserForm';
 import EditUserModal from './EditUserModal';
 import ChangePasswordModal from './ChangePasswordModal';
 import DeleteUserModal from './DeleteUserModal';
-import DescriptionModal from './DescriptionModal';
+import ContractModal from './ContractModal';
 import Sidebar from '../../components/Sidebar';
 
 export default function UsersPage() {
@@ -17,7 +17,7 @@ export default function UsersPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
+    const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -68,9 +68,9 @@ export default function UsersPage() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleDescriptionClick = (user) => {
+    const handleContractClick = (user) => {
         setSelectedUser(user);
-        setIsDescriptionModalOpen(true);
+        setIsContractModalOpen(true);
     };
 
     return (
@@ -138,9 +138,9 @@ export default function UsersPage() {
                                                     <motion.button
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
-                                                        onClick={() => handleDescriptionClick(user)}
+                                                        onClick={() => handleContractClick(user)}
                                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                                        title="مشاهده توضیحات"
+                                                        title="مشاهده قرارداد"
                                                     >
                                                         <FiFileText />
                                                     </motion.button>
@@ -232,17 +232,12 @@ export default function UsersPage() {
                     </AnimatePresence>
 
                     <AnimatePresence>
-                        {isDescriptionModalOpen && (
-                            <DescriptionModal
+                        {isContractModalOpen && (
+                            <ContractModal
                                 user={selectedUser}
                                 onClose={() => {
-                                    setIsDescriptionModalOpen(false);
+                                    setIsContractModalOpen(false);
                                     setSelectedUser(null);
-                                }}
-                                onSuccess={() => {
-                                    setIsDescriptionModalOpen(false);
-                                    setSelectedUser(null);
-                                    fetchUsers();
                                 }}
                             />
                         )}

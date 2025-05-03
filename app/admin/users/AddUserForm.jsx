@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiShield, FiGlobe, FiHash, FiInfo, FiPlus } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiShield, FiGlobe, FiHash, FiInfo, FiPlus, FiCalendar, FiLayers, FiMonitor, FiUserCheck, FiShieldOff, FiPackage, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 export default function AddUserForm({ onClose, onSuccess }) {
@@ -10,17 +10,19 @@ export default function AddUserForm({ onClose, onSuccess }) {
         email: '',
         password: '',
         role: 'user',
-        system_ip: '',
-        serial_number: '',
-        description: ''
+        is_verified: false,
+        system_ip: [],
+        serial_number: [],
+        description: '',
+        expire_date: '',
+        type_app: '',
+        os: '',
+        person: '',
+        firewall_model: '',
+        product_name: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    const getToken = () => {
-        const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
-        return tokenCookie ? tokenCookie.split('=')[1] : null;
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,7 +30,9 @@ export default function AddUserForm({ onClose, onSuccess }) {
         setLoading(true);
 
         try {
-            const token = getToken();
+            const tokenCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+            const token = tokenCookie ? tokenCookie.split('=')[1] : null;
+
             if (!token) {
                 throw new Error('لطفاً ابتدا وارد شوید');
             }
@@ -54,9 +58,16 @@ export default function AddUserForm({ onClose, onSuccess }) {
                 email: '',
                 password: '',
                 role: 'user',
-                system_ip: '',
-                serial_number: '',
-                description: ''
+                is_verified: false,
+                system_ip: [],
+                serial_number: [],
+                description: '',
+                expire_date: '',
+                type_app: '',
+                os: '',
+                person: '',
+                firewall_model: '',
+                product_name: ''
             });
             
             if (onSuccess) {
@@ -192,17 +203,45 @@ export default function AddUserForm({ onClose, onSuccess }) {
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
                     >
                         <label className="block text-sm font-medium text-gray-700 mb-2">IP سیستم</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <FiGlobe className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                value={formData.system_ip}
-                                onChange={(e) => setFormData({ ...formData, system_ip: e.target.value })}
-                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                placeholder="IP سیستم"
-                            />
+                        <div className="space-y-2">
+                            {formData.system_ip.map((ip, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <FiGlobe className="h-5 w-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={ip}
+                                            onChange={(e) => {
+                                                const newIps = [...formData.system_ip];
+                                                newIps[index] = e.target.value;
+                                                setFormData({ ...formData, system_ip: newIps });
+                                            }}
+                                            className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                            placeholder="IP سیستم"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newIps = formData.system_ip.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, system_ip: newIps });
+                                        }}
+                                        className="p-2 text-red-500 hover:text-red-600"
+                                    >
+                                        <FiX className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, system_ip: [...formData.system_ip, ''] })}
+                                className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                            >
+                                <FiPlus className="w-5 h-5" />
+                                <span>افزودن IP جدید</span>
+                            </button>
                         </div>
                     </motion.div>
 
@@ -211,16 +250,157 @@ export default function AddUserForm({ onClose, onSuccess }) {
                         className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
                     >
                         <label className="block text-sm font-medium text-gray-700 mb-2">شماره سریال</label>
+                        <div className="space-y-2">
+                            {formData.serial_number.map((sn, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <FiHash className="h-5 w-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={sn}
+                                            onChange={(e) => {
+                                                const newSns = [...formData.serial_number];
+                                                newSns[index] = e.target.value;
+                                                setFormData({ ...formData, serial_number: newSns });
+                                            }}
+                                            className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                            placeholder="شماره سریال"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newSns = formData.serial_number.filter((_, i) => i !== index);
+                                            setFormData({ ...formData, serial_number: newSns });
+                                        }}
+                                        className="p-2 text-red-500 hover:text-red-600"
+                                    >
+                                        <FiX className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, serial_number: [...formData.serial_number, ''] })}
+                                className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                            >
+                                <FiPlus className="w-5 h-5" />
+                                <span>افزودن شماره سریال جدید</span>
+                            </button>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">تاریخ انقضا</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <FiHash className="h-5 w-5 text-gray-400" />
+                                <FiCalendar className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="datetime-local"
+                                value={formData.expire_date}
+                                onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
+                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">نوع برنامه</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <FiLayers className="h-5 w-5 text-gray-400" />
                             </div>
                             <input
                                 type="text"
-                                value={formData.serial_number}
-                                onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                                value={formData.type_app}
+                                onChange={(e) => setFormData({ ...formData, type_app: e.target.value })}
                                 className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                placeholder="شماره سریال"
+                                placeholder="نوع برنامه"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">سیستم عامل</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <FiMonitor className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                value={formData.os}
+                                onChange={(e) => setFormData({ ...formData, os: e.target.value })}
+                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                placeholder="سیستم عامل"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">شخص</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <FiUserCheck className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                value={formData.person}
+                                onChange={(e) => setFormData({ ...formData, person: e.target.value })}
+                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                placeholder="شخص"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">مدل فایروال</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <FiShieldOff className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                value={formData.firewall_model}
+                                onChange={(e) => setFormData({ ...formData, firewall_model: e.target.value })}
+                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                placeholder="مدل فایروال"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                    >
+                        <label className="block text-sm font-medium text-gray-700 mb-2">نام محصول</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <FiPackage className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                value={formData.product_name}
+                                onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                                className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                placeholder="نام محصول"
                             />
                         </div>
                     </motion.div>
@@ -242,6 +422,21 @@ export default function AddUserForm({ onClose, onSuccess }) {
                             placeholder="توضیحات"
                         />
                     </div>
+                </motion.div>
+
+                <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                >
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.is_verified}
+                            onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">تایید شده</span>
+                    </label>
                 </motion.div>
 
                 <motion.button

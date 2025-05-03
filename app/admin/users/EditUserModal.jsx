@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiShield, FiGlobe, FiHash, FiX, FiSave } from 'react-icons/fi';
+import { FiUser, FiMail, FiShield, FiGlobe, FiHash, FiInfo, FiX, FiSave, FiCalendar, FiLayers, FiMonitor, FiUserCheck, FiShieldOff, FiPackage, FiPlus } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 export default function EditUserModal({ user, onClose, onSuccess }) {
@@ -9,9 +9,16 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
         username: '',
         email: '',
         role: 'user',
-        system_ip: '',
-        serial_number: '',
-        is_verified: false
+        is_verified: false,
+        system_ip: [],
+        serial_number: [],
+        description: '',
+        expire_date: '',
+        type_app: '',
+        os: '',
+        person: '',
+        firewall_model: '',
+        product_name: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -22,9 +29,16 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                 username: user.username || '',
                 email: user.email || '',
                 role: user.role || 'user',
-                system_ip: user.system_ip || '',
-                serial_number: user.serial_number || '',
-                is_verified: user.is_verified || false
+                is_verified: user.is_verified || false,
+                system_ip: Array.isArray(user.system_ip) ? user.system_ip : [],
+                serial_number: Array.isArray(user.serial_number) ? user.serial_number : [],
+                description: user.description || '',
+                expire_date: user.expire_date || '',
+                type_app: user.type_app || '',
+                os: user.os || '',
+                person: user.person || '',
+                firewall_model: user.firewall_model || '',
+                product_name: user.product_name || ''
             });
         }
     }, [user]);
@@ -48,14 +62,7 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    username: userData.username,
-                    email: userData.email,
-                    role: userData.role,
-                    system_ip: userData.system_ip,
-                    serial_number: userData.serial_number,
-                    is_verified: userData.is_verified
-                })
+                body: JSON.stringify(userData)
             });
 
             if (!response.ok) {
@@ -86,7 +93,7 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
-                    className="bg-white rounded-xl p-6 w-full max-w-md"
+                    className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex justify-between items-center mb-4">
@@ -106,86 +113,264 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">نام کاربری</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <FiUser className="h-5 w-5 text-gray-400" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">نام کاربری</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiUser className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.username}
+                                        onChange={(e) => setUserData({ ...userData, username: e.target.value })}
+                                        required
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={userData.username}
-                                    onChange={(e) => setUserData({ ...userData, username: e.target.value })}
-                                    required
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                    placeholder="نام کاربری"
-                                />
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ایمیل</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <FiMail className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">ایمیل</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiMail className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        value={userData.email}
+                                        onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                                        required
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
                                 </div>
-                                <input
-                                    type="email"
-                                    value={userData.email}
-                                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                                    required
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                    placeholder="ایمیل"
-                                />
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">نقش</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <FiShield className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">نقش</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiShield className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <select
+                                        value={userData.role}
+                                        onChange={(e) => setUserData({ ...userData, role: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="user">کاربر</option>
+                                        <option value="admin">مدیر</option>
+                                    </select>
                                 </div>
-                                <select
-                                    value={userData.role}
-                                    onChange={(e) => setUserData({ ...userData, role: e.target.value })}
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                >
-                                    <option value="user">کاربر</option>
-                                    <option value="admin">مدیر</option>
-                                </select>
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">IP سیستم</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <FiGlobe className="h-5 w-5 text-gray-400" />
+                            <motion.div
+                                whileHover={{ scale: 1.01 }}
+                                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                            >
+                                <label className="block text-sm font-medium text-gray-700 mb-2">IP سیستم</label>
+                                <div className="space-y-2">
+                                    {userData.system_ip.map((ip, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                    <FiGlobe className="h-5 w-5 text-gray-400" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={ip}
+                                                    onChange={(e) => {
+                                                        const newIps = [...userData.system_ip];
+                                                        newIps[index] = e.target.value;
+                                                        setUserData({ ...userData, system_ip: newIps });
+                                                    }}
+                                                    className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                                    placeholder="IP سیستم"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newIps = userData.system_ip.filter((_, i) => i !== index);
+                                                    setUserData({ ...userData, system_ip: newIps });
+                                                }}
+                                                className="p-2 text-red-500 hover:text-red-600"
+                                            >
+                                                <FiX className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setUserData({ ...userData, system_ip: [...userData.system_ip, ''] })}
+                                        className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                    >
+                                        <FiPlus className="w-5 h-5" />
+                                        <span>افزودن IP جدید</span>
+                                    </button>
                                 </div>
-                                <input
-                                    type="text"
-                                    value={userData.system_ip}
-                                    onChange={(e) => setUserData({ ...userData, system_ip: e.target.value })}
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                    placeholder="IP سیستم"
-                                />
+                            </motion.div>
+
+                            <motion.div
+                                whileHover={{ scale: 1.01 }}
+                                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                            >
+                                <label className="block text-sm font-medium text-gray-700 mb-2">شماره سریال</label>
+                                <div className="space-y-2">
+                                    {userData.serial_number.map((sn, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                    <FiHash className="h-5 w-5 text-gray-400" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={sn}
+                                                    onChange={(e) => {
+                                                        const newSns = [...userData.serial_number];
+                                                        newSns[index] = e.target.value;
+                                                        setUserData({ ...userData, serial_number: newSns });
+                                                    }}
+                                                    className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                                    placeholder="شماره سریال"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newSns = userData.serial_number.filter((_, i) => i !== index);
+                                                    setUserData({ ...userData, serial_number: newSns });
+                                                }}
+                                                className="p-2 text-red-500 hover:text-red-600"
+                                            >
+                                                <FiX className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setUserData({ ...userData, serial_number: [...userData.serial_number, ''] })}
+                                        className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                    >
+                                        <FiPlus className="w-5 h-5" />
+                                        <span>افزودن شماره سریال جدید</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">تاریخ انقضا</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiCalendar className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="datetime-local"
+                                        value={userData.expire_date ? new Date(userData.expire_date).toISOString().slice(0, 16) : ''}
+                                        onChange={(e) => setUserData({ ...userData, expire_date: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">شماره سریال</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <FiHash className="h-5 w-5 text-gray-400" />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">نوع برنامه</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiLayers className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.type_app}
+                                        onChange={(e) => setUserData({ ...userData, type_app: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={userData.serial_number}
-                                    onChange={(e) => setUserData({ ...userData, serial_number: e.target.value })}
-                                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                    placeholder="شماره سریال"
-                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">سیستم عامل</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiMonitor className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.os}
+                                        onChange={(e) => setUserData({ ...userData, os: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">شخص</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiUserCheck className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.person}
+                                        onChange={(e) => setUserData({ ...userData, person: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">مدل فایروال</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiShieldOff className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.firewall_model}
+                                        onChange={(e) => setUserData({ ...userData, firewall_model: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">نام محصول</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiPackage className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.product_name}
+                                        onChange={(e) => setUserData({ ...userData, product_name: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">توضیحات</label>
+                                <div className="relative">
+                                    <div className="absolute top-3 right-3 pointer-events-none">
+                                        <FiInfo className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <textarea
+                                        value={userData.description}
+                                        onChange={(e) => setUserData({ ...userData, description: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={userData.is_verified}
+                                        onChange={(e) => setUserData({ ...userData, is_verified: e.target.checked })}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">تایید شده</span>
+                                </label>
                             </div>
                         </div>
 
@@ -193,14 +378,14 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                             >
                                 انصراف
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">
