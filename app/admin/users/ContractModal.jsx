@@ -1,6 +1,6 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiFileText, FiCalendar, FiUser, FiShield, FiGlobe, FiHash, FiPackage, FiMonitor } from 'react-icons/fi';
+import { FiX, FiFileText, FiCalendar, FiUser, FiShield, FiGlobe, FiHash, FiPackage, FiMonitor, FiUserCheck, FiClock } from 'react-icons/fi';
 import { format } from 'date-fns-jalali';
 
 export default function ContractModal({ user, onClose }) {
@@ -57,6 +57,7 @@ export default function ContractModal({ user, onClose }) {
 
                         {/* Contract Details */}
                         <div className="space-y-6">
+                            {/* User Information */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-gray-50 p-4 rounded-xl">
                                     <div className="flex items-center gap-2 text-gray-600 mb-2">
@@ -71,11 +72,45 @@ export default function ContractModal({ user, onClose }) {
                                             <span className="font-medium">ایمیل:</span> {user.email}
                                         </p>
                                         <p className="text-gray-800">
-                                            <span className="font-medium">نقش:</span> {user.role === 'admin' ? 'مدیر' : 'کاربر'}
+                                            <span className="font-medium">نقش:</span> 
+                                            <span className={`px-2 py-1 text-xs rounded-full ${
+                                                user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                                            }`}>
+                                                {user.role === 'admin' ? 'مدیر' : 'کاربر'}
+                                            </span>
+                                        </p>
+                                        <p className="text-gray-800">
+                                            <span className="font-medium">وضعیت:</span>
+                                            <span className={`px-2 py-1 text-xs rounded-full ${
+                                                user.is_verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {user.is_verified ? 'تایید شده' : 'در انتظار تایید'}
+                                            </span>
                                         </p>
                                     </div>
                                 </div>
 
+                                <div className="bg-gray-50 p-4 rounded-xl">
+                                    <div className="flex items-center gap-2 text-gray-600 mb-2">
+                                        <FiUserCheck className="w-5 h-5" />
+                                        <span className="font-medium">اطلاعات تکمیلی</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-gray-800">
+                                            <span className="font-medium">شخص:</span> {user.person || 'نامشخص'}
+                                        </p>
+                                        <p className="text-gray-800">
+                                            <span className="font-medium">تاریخ ایجاد:</span> {formatDate(user.created_at)}
+                                        </p>
+                                        <p className="text-gray-800">
+                                            <span className="font-medium">آخرین بروزرسانی:</span> {formatDate(user.updated_at)}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Software Information */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-gray-50 p-4 rounded-xl">
                                     <div className="flex items-center gap-2 text-gray-600 mb-2">
                                         <FiPackage className="w-5 h-5" />
@@ -93,9 +128,7 @@ export default function ContractModal({ user, onClose }) {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-gray-50 p-4 rounded-xl">
                                     <div className="flex items-center gap-2 text-gray-600 mb-2">
                                         <FiShield className="w-5 h-5" />
@@ -107,19 +140,24 @@ export default function ContractModal({ user, onClose }) {
                                         </p>
                                         <p className="text-gray-800">
                                             <span className="font-medium">شماره سریال:</span>
-                                            <ul className="list-disc list-inside mt-1">
+                                            <div className="mt-1 space-y-1">
                                                 {user.serial_number && user.serial_number.length > 0 ? (
                                                     user.serial_number.map((sn, index) => (
-                                                        <li key={index} className="text-gray-800">{sn}</li>
+                                                        <span key={index} className="inline-block px-2 py-1 bg-gray-100 rounded text-sm mr-1 mb-1">
+                                                            {sn}
+                                                        </span>
                                                     ))
                                                 ) : (
-                                                    <li className="text-gray-800">نامشخص</li>
+                                                    <span className="text-gray-500">نامشخص</span>
                                                 )}
-                                            </ul>
+                                            </div>
                                         </p>
                                     </div>
                                 </div>
+                            </div>
 
+                            {/* Network Information */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-gray-50 p-4 rounded-xl">
                                     <div className="flex items-center gap-2 text-gray-600 mb-2">
                                         <FiGlobe className="w-5 h-5" />
@@ -128,29 +166,31 @@ export default function ContractModal({ user, onClose }) {
                                     <div className="space-y-2">
                                         <p className="text-gray-800">
                                             <span className="font-medium">IP سیستم:</span>
-                                            <ul className="list-disc list-inside mt-1">
+                                            <div className="mt-1 space-y-1">
                                                 {user.system_ip && user.system_ip.length > 0 ? (
                                                     user.system_ip.map((ip, index) => (
-                                                        <li key={index} className="text-gray-800">{ip}</li>
+                                                        <span key={index} className="inline-block px-2 py-1 bg-gray-100 rounded text-sm mr-1 mb-1">
+                                                            {ip}
+                                                        </span>
                                                     ))
                                                 ) : (
-                                                    <li className="text-gray-800">نامشخص</li>
+                                                    <span className="text-gray-500">نامشخص</span>
                                                 )}
-                                            </ul>
+                                            </div>
                                         </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <div className="flex items-center gap-2 text-gray-600 mb-2">
-                                    <FiCalendar className="w-5 h-5" />
-                                    <span className="font-medium">مدت قرارداد</span>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-gray-800">
-                                        <span className="font-medium">تاریخ انقضا:</span> {formatDate(user.expire_date)}
-                                    </p>
+                                <div className="bg-gray-50 p-4 rounded-xl">
+                                    <div className="flex items-center gap-2 text-gray-600 mb-2">
+                                        <FiClock className="w-5 h-5" />
+                                        <span className="font-medium">مدت قرارداد</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-gray-800">
+                                            <span className="font-medium">تاریخ انقضا:</span> {formatDate(user.expire_date)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 

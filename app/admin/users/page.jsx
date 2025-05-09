@@ -111,6 +111,14 @@ export default function UsersPage() {
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نقش</th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">IP سیستم</th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">شماره سریال</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">توضیحات</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاریخ انقضا</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع برنامه</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سیستم عامل</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">شخص</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مدل فایروال</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام محصول</th>
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نام شرکت</th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
                                     </tr>
                                 </thead>
@@ -131,8 +139,38 @@ export default function UsersPage() {
                                                     {user.role === 'admin' ? 'مدیر' : 'کاربر'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.system_ip || '-'}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.serial_number || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {Array.isArray(user.system_ip) ? (
+                                                    <div className="flex flex-col gap-1">
+                                                        {user.system_ip.map((ip, index) => (
+                                                            <span key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">{ip}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {Array.isArray(user.serial_number) ? (
+                                                    <div className="flex flex-col gap-1">
+                                                        {user.serial_number.map((sn, index) => (
+                                                            <span key={index} className="px-2 py-1 bg-gray-100 rounded text-xs">{sn}</span>
+                                                        ))}
+                                                    </div>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                                                <div className="truncate" title={user.description || '-'}>
+                                                    {user.description || '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {user.expire_date ? new Date(user.expire_date).toLocaleDateString('fa-IR') : '-'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.type_app || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.os || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.person || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.firewall_model || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.product_name || '-'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.company || '-'}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 <div className="flex items-center gap-2">
                                                     <motion.button

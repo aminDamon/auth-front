@@ -18,7 +18,8 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
         os: '',
         person: '',
         firewall_model: '',
-        product_name: ''
+        product_name: '',
+        company: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -38,7 +39,8 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                 os: user.os || '',
                 person: user.person || '',
                 firewall_model: user.firewall_model || '',
-                product_name: user.product_name || ''
+                product_name: user.product_name || '',
+                company: user.company || ''
             });
         }
     }, [user]);
@@ -184,29 +186,35 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                                                         setUserData({ ...userData, system_ip: newIps });
                                                     }}
                                                     className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                                    placeholder="IP سیستم"
+                                                    placeholder="IP سیستم (مثال: 192.168.1.100)"
+                                                    pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
                                                 />
                                             </div>
-                                            <button
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
                                                 type="button"
                                                 onClick={() => {
                                                     const newIps = userData.system_ip.filter((_, i) => i !== index);
                                                     setUserData({ ...userData, system_ip: newIps });
                                                 }}
-                                                className="p-2 text-red-500 hover:text-red-600"
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                title="حذف IP"
                                             >
-                                                <FiX className="w-5 h-5" />
-                                            </button>
+                                                <FiX />
+                                            </motion.button>
                                         </div>
                                     ))}
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         type="button"
                                         onClick={() => setUserData({ ...userData, system_ip: [...userData.system_ip, ''] })}
-                                        className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                                     >
-                                        <FiPlus className="w-5 h-5" />
-                                        <span>افزودن IP جدید</span>
-                                    </button>
+                                        <FiPlus className="w-4 h-4" />
+                                        افزودن IP جدید
+                                    </motion.button>
                                 </div>
                             </motion.div>
 
@@ -234,26 +242,31 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                                                     placeholder="شماره سریال"
                                                 />
                                             </div>
-                                            <button
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
                                                 type="button"
                                                 onClick={() => {
                                                     const newSns = userData.serial_number.filter((_, i) => i !== index);
                                                     setUserData({ ...userData, serial_number: newSns });
                                                 }}
-                                                className="p-2 text-red-500 hover:text-red-600"
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                title="حذف شماره سریال"
                                             >
-                                                <FiX className="w-5 h-5" />
-                                            </button>
+                                                <FiX />
+                                            </motion.button>
                                         </div>
                                     ))}
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         type="button"
                                         onClick={() => setUserData({ ...userData, serial_number: [...userData.serial_number, ''] })}
-                                        className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm"
                                     >
-                                        <FiPlus className="w-5 h-5" />
-                                        <span>افزودن شماره سریال جدید</span>
-                                    </button>
+                                        <FiPlus className="w-4 h-4" />
+                                        افزودن شماره سریال جدید
+                                    </motion.button>
                                 </div>
                             </motion.div>
 
@@ -264,9 +277,10 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                                         <FiCalendar className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
-                                        type="datetime-local"
-                                        value={userData.expire_date ? new Date(userData.expire_date).toISOString().slice(0, 16) : ''}
+                                        type="date"
+                                        value={userData.expire_date ? userData.expire_date.split('T')[0] : ''}
                                         onChange={(e) => setUserData({ ...userData, expire_date: e.target.value })}
+                                        min={new Date().toISOString().split('T')[0]}
                                         className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
@@ -342,6 +356,22 @@ export default function EditUserModal({ user, onClose, onSuccess }) {
                                         type="text"
                                         value={userData.product_name}
                                         onChange={(e) => setUserData({ ...userData, product_name: e.target.value })}
+                                        className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">نام شرکت</label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <FiPackage className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={userData.company}
+                                        onChange={(e) => setUserData({ ...userData, company: e.target.value })}
+                                        required
                                         className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>

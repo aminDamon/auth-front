@@ -219,10 +219,11 @@ const Header = ({ darkMode, setDarkMode }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: 'نرم‌افزار مدیریت شبکه', version: '3.2.1', size: '45MB' },
-                  { name: 'نرم‌افزار امنیت اطلاعات', version: '2.0.5', size: '32MB' },
-                  { name: 'نرم‌افزار پشتیبان‌گیری', version: '1.7.3', size: '28MB' },
-                  { name: 'نرم‌افزار مانیتورینگ', version: '4.1.0', size: '38MB' }
+                  // { name: 'نرم‌افزار مدیریت شبکه', version: '3.2.1', size: '45MB' },
+                  // { name: 'نرم‌افزار امنیت اطلاعات', version: '2.0.5', size: '32MB' },
+                  // { name: 'نرم‌افزار پشتیبان‌گیری', version: '1.7.3', size: '28MB' },
+                  // { name: 'نرم‌افزار مانیتورینگ', version: '4.1.0', size: '38MB' }
+                  { name: 'نرم‌افزار Safeupdate ', version: '4.2.2', size: '112MB' },
                 ].map((app, index) => (
                   <motion.div
                     key={index}
